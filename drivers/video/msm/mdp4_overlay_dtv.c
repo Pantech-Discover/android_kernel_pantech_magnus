@@ -1105,7 +1105,7 @@ static void mdp4_dtv_do_blt(struct msm_fb_data_type *mfd, int enable)
 		mdp4_overlay_dmae_xy(pipe);
 	} else
 		pr_err("%s: ctrl=%d is not supported\n", __func__, ctrl);
-}
+	}
 
 void mdp4_dtv_overlay_blt_start(struct msm_fb_data_type *mfd)
 {

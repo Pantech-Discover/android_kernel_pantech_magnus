@@ -288,7 +288,7 @@ void mdp4_lcdc_vsync_ctrl(struct fb_info *info, int enable)
 
 	if (vctrl->vsync_irq_enabled &&  atomic_read(&vctrl->suspend) == 0)
 		atomic_set(&vctrl->vsync_resume, 1);
-}
+	}
 
 void mdp4_lcdc_wait4vsync(int cndx, long long *vtime)
 {

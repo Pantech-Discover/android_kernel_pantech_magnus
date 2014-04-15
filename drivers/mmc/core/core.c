@@ -2793,6 +2793,21 @@ int mmc_resume_host(struct mmc_host *host)
 }
 EXPORT_SYMBOL(mmc_resume_host);
 
+// [[[[[[[[[[[[[[[[[ added by P10458 for OneSeg's CPRM
+int mmc_read_card_info(struct mmc_card *card)
+{
+	return mmc_sd_get_card_info(card);
+}
+
+EXPORT_SYMBOL(mmc_read_card_info);
+
+int mmc_read_sd_status(struct mmc_card *card)
+{
+	return mmc_sd_read_sd_status(card);
+}
+EXPORT_SYMBOL(mmc_read_sd_status);
+// ]]]]]]]]]]]]]]]]] added by P10458 for OneSeg's CPRM
+
 /* Do the card removal on suspend if card is assumed removeable
  * Do that in pm notifier while userspace isn't yet frozen, so we will be able
    to sync the card.

@@ -13,6 +13,11 @@
 #include <linux/module.h>
 #include "msm_actuator.h"
 
+#if defined(CONFIG_MACH_MSM8960_VEGAPVW)
+#undef CDBG
+#define CDBG pr_err
+#endif
+
 static struct msm_actuator_ctrl_t msm_actuator_t;
 
 static struct msm_actuator msm_vcm_actuator_table = {
@@ -230,12 +235,15 @@ int32_t msm_actuator_move_focus(
 	int16_t dest_step_pos = move_params->dest_step_pos;
 	uint16_t curr_lens_pos = 0;
 	int dir = move_params->dir;
+
+#if 0
 	int32_t num_steps = move_params->num_steps;
 
 	CDBG("%s called, dir %d, num_steps %d\n",
 		__func__,
 		dir,
 		num_steps);
+#endif
 
 	if (dest_step_pos == a_ctrl->curr_step_pos)
 		return rc;

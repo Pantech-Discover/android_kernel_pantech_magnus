@@ -31,6 +31,8 @@
 #define BAM_N_PORTS	1
 #define BAM2BAM_N_PORTS	3
 
+#define FEATURE_PANTECH_QUALCOMM_SEND_ZERO_LENGTH_PACKET // LS2_USB 20130603 pooyi send zelo length packet
+
 static struct workqueue_struct *gbam_wq;
 static int n_bam_ports;
 static int n_bam2bam_ports;
@@ -209,6 +211,13 @@ static void gbam_write_data_tohost(struct gbam_port *port)
 		} else {
 			req->no_interrupt = 1;
 		}
+
+#ifdef FEATURE_PANTECH_QUALCOMM_SEND_ZERO_LENGTH_PACKET
+		if((req->length % ep->maxpacket) == 0)
+			req->zero = 1;
+		else
+			req->zero = 0;
+#endif
 
 		/* Send ZLP in case packet length is multiple of maxpacksize */
 		req->zero = 1;

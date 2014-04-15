@@ -640,7 +640,11 @@ u32 res_trk_set_perf_level(u32 req_perf_lvl, u32 *pn_set_perf_lvl,
 		}
 	}
 #endif
+#if 0 // FEATURE_PANTECH_MMP Codec - release log to debug perfomance level
 	VCDRES_MSG_MED("%s() set perl level : %d", __func__, *pn_set_perf_lvl);
+#else
+       printk(KERN_INFO "\n%s() set perl level : %d\n", __func__, *pn_set_perf_lvl);
+#endif
 	return true;
 }
 

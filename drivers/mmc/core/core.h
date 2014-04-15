@@ -70,6 +70,10 @@ int _mmc_detect_card_removed(struct mmc_host *host);
 int mmc_attach_mmc(struct mmc_host *host);
 int mmc_attach_sd(struct mmc_host *host);
 int mmc_attach_sdio(struct mmc_host *host);
+// [[[[[[[[[[[[[[ added by P10458 for OneSeg's CPRM
+int mmc_sd_get_card_info(struct mmc_card *card);
+int mmc_sd_read_sd_status(struct mmc_card *card);
+// ]]]]]]]]]]]]]] added by P10458 for OneSeg's CPRM
 
 /* Module parameters */
 extern bool use_spi_crc;

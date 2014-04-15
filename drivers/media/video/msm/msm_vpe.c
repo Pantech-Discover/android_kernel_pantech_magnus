@@ -639,10 +639,21 @@ void msm_vpe_subdev_release(void)
 		return;
 	}
 
+#if 0 // Original Code
 	vpe_reset();
 	vpe_disable();
 	iounmap(vpe_ctrl->vpebase);
 	vpe_ctrl->vpebase = NULL;
+#else // QCT SR No.977449 SBA Apply By P15005
+	if (vpe_ctrl->vpebase != NULL) { 
+		vpe_reset(); 
+		iounmap(vpe_ctrl->vpebase); 
+		vpe_ctrl->vpebase = NULL; 
+	} 
+
+	vpe_disable();
+#endif // QCT SR No.977449 SBA Apply By P15005
+
 	atomic_set(&vpe_init_done, 0);
 }
 EXPORT_SYMBOL(msm_vpe_subdev_release);

@@ -29,6 +29,8 @@
 
 #define GSL_RB_NOP_SIZEDWORDS				2
 
+/* p13447 shinjg Premia JB PLM 140 KGSL PageFault issue  */
+#define	CONFIG_QUALCOMM_BUG_FIX_MMU_PAGEFAULT 
 /*
  * CP DEBUG settings for all cores:
  * DYNAMIC_CLK_DISABLE [27] - turn off the dynamic clock control
@@ -539,8 +541,10 @@ adreno_ringbuffer_addcmds(struct adreno_ringbuffer *rb,
 	if (adreno_is_a3xx(adreno_dev))
 		total_sizedwords += 7;
 
+#if defined(CONFIG_QUALCOMM_BUG_FIX_MMU_PAGEFAULT)
 	if (adreno_is_a2xx(adreno_dev))
 		total_sizedwords += 2; /* CP_WAIT_FOR_IDLE */
+#endif
 
 	total_sizedwords += 2; /* scratchpad ts for recovery */
 	if (context->flags & CTXT_FLAGS_PER_CONTEXT_TS) {
@@ -598,6 +602,7 @@ adreno_ringbuffer_addcmds(struct adreno_ringbuffer *rb,
 	}
 	timestamp = rb->timestamp[context_id];
 
+#if defined(CONFIG_QUALCOMM_BUG_FIX_MMU_PAGEFAULT)
 	/* HW Workaround for MMU Page fault
 	* due to memory getting free early before
 	* GPU completes it.
@@ -607,7 +612,7 @@ adreno_ringbuffer_addcmds(struct adreno_ringbuffer *rb,
 			cp_type3_packet(CP_WAIT_FOR_IDLE, 1));
 		GSL_RB_WRITE(ringcmds, rcmd_gpu, 0x00);
 	}
-
+#endif
 	/* scratchpad ts for recovery */
 	GSL_RB_WRITE(ringcmds, rcmd_gpu, cp_type0_packet(REG_CP_TIMESTAMP, 1));
 	GSL_RB_WRITE(ringcmds, rcmd_gpu, rb->timestamp[KGSL_MEMSTORE_GLOBAL]);

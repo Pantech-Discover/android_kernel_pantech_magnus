@@ -461,6 +461,105 @@ out:
 	return ERR_PTR(err);
 }
 
+// [[[[[[[[[[[ 2012.04.04 added by P10458 for OneSeg's CPRM
+static u32 mmc_read_card_status(struct mmc_card *card)
+{
+	struct mmc_command cmd;
+	int err;
+
+	memset(&cmd, 0, sizeof(struct mmc_command));
+	cmd.opcode = MMC_SEND_STATUS;
+	if (!mmc_host_is_spi(card->host))
+		cmd.arg = card->rca << 16;
+	cmd.flags = MMC_RSP_SPI_R2 | MMC_RSP_R1 | MMC_CMD_AC;
+	err = mmc_wait_for_cmd(card->host, &cmd, 0);
+	if (err)
+		printk(KERN_ERR "%s: error %d sending status comand",
+		       "mmc_blk_ioctl_cmd_extend", err);
+	return cmd.resp[0];
+}
+
+static int mmc_blk_ioctl_cmd_extend(struct block_device *bdev, struct mmc_ioc_cmd_extend __user *data)
+{
+	int err = 0;
+	struct mmc_ioc_cmd_extend *pcard_data_to_user;
+	struct mmc_card *pcard_temp, *pCard;
+	struct mmc_blk_data *md;
+
+  pcard_data_to_user = (struct mmc_ioc_cmd_extend *)kmalloc(sizeof(struct mmc_ioc_cmd_extend), GFP_KERNEL);
+  pcard_temp = (struct mmc_card *)kmalloc(sizeof(struct mmc_card), GFP_KERNEL);
+  
+	//printk("mmc_blk_ioctl_cmd_extend ++\n");
+
+	mmc_read_card_info(pcard_temp);
+	memcpy(&pcard_data_to_user->ssr, &pcard_temp->ssr, sizeof(struct sd_ssr));
+	pcard_data_to_user->ccs = pcard_temp->ccs;
+	pcard_data_to_user->capacity_of_protected_area_in_byte = pcard_temp->capacity_of_protected_area_in_byte;
+	pcard_data_to_user->card_status = 0;
+	pcard_data_to_user->capacity = pcard_temp->capacity;
+
+	//printk("mmc_blk_get ++\n");
+	md = mmc_blk_get(bdev->bd_disk);
+	//printk("mmc_blk_get --\n");
+
+	if (!md) {
+		err = -EINVAL;
+		goto cmd_done;
+	}
+
+	pCard = md->queue.card;
+	if (IS_ERR(pCard)) {
+		err = PTR_ERR(pCard);
+		goto cmd_done;
+	}
+
+	//printk("mmc_claim_host ++\n");
+	mmc_claim_host(pCard->host);
+	//printk("mmc_claim_host --\n");
+
+	//printk("mmc_read_card_status ++\n");
+	pcard_data_to_user->card_status = mmc_read_card_status(pCard);
+	//printk("mmc_read_card_status --\n");
+
+	//printk("mmc_read_sd_status ++\n");
+	//mmc_read_sd_status(pCard);
+	//printk("mmc_read_sd_status --\n");
+	//memcpy(&pcard_data_to_user->ssr, &pCard->ssr, sizeof(struct sd_ssr));
+#if 0
+	printk("############################################\n");
+	printk("card_status=[%08x]\n", pcard_data_to_user->card_status);
+	printk("ccs=[%d]\n", pcard_data_to_user->ccs);
+	printk("pa cap=[%d]\n", pcard_data_to_user->capacity_of_protected_area_in_byte);
+	printk("user cap=[%d]\n", pcard_data_to_user->capacity);
+	printk("secure_mode=[%d]\n", pcard_data_to_user->ssr.secure_mode);
+	printk("############################################\n");	
+#endif
+	if(!access_ok(VERIFY_WRITE, data, sizeof(struct mmc_ioc_cmd_extend))) {
+		printk("invalid user area\n");	
+		err = -EFAULT;
+		goto cmd_rel_host;
+	}
+
+  //printk("card_data_to_user \n");
+	if (copy_to_user((void __user*)data, (void*)pcard_data_to_user, sizeof(struct mmc_ioc_cmd_extend))) {
+		printk("fail to copy to user\n");
+		err = -EFAULT;
+		goto cmd_rel_host;
+	}
+
+cmd_rel_host:
+	mmc_release_host(pCard->host);
+	
+cmd_done:
+	mmc_blk_put(md);
+  kfree(pcard_data_to_user);
+  kfree(pcard_temp);
+
+	//printk("mmc_blk_ioctl_cmd_extend --, err=[%d]\n", err);
+	return err;
+}
+// ]]]]]]]]]]] 2012.04.04 added by P10458 for OneSeg's CPRM
+
 static int mmc_blk_ioctl_cmd(struct block_device *bdev,
 	struct mmc_ioc_cmd __user *ic_ptr)
 {
@@ -598,6 +697,10 @@ static int mmc_blk_ioctl(struct block_device *bdev, fmode_t mode,
 	int ret = -EINVAL;
 	if (cmd == MMC_IOC_CMD)
 		ret = mmc_blk_ioctl_cmd(bdev, (struct mmc_ioc_cmd __user *)arg);
+	// [[[[[[[[[[[ 2012.04.04 added by P10458 for OneSeg's CPRM
+	else if(cmd == MMC_IOC_CMD_EXTEND)
+		ret = mmc_blk_ioctl_cmd_extend(bdev, (struct mmc_ioc_cmd_extend __user *)arg);
+	// ]]]]]]]]]]] 2012.04.04 added by P10458 for OneSeg's CPRM
 	return ret;
 }
 

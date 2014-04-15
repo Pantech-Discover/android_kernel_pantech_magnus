@@ -407,7 +407,7 @@ void mdp4_dsi_cmd_vsync_ctrl(struct fb_info *info, int enable)
 	if (vctrl->vsync_enabled == enable) {
 		mutex_unlock(&vctrl->update_lock);
 		return;
-	}
+}
 
 	vctrl->vsync_enabled = enable;
 

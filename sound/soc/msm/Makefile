@@ -72,6 +72,10 @@ obj-$(CONFIG_SND_SOC_MSM_HOSTLESS_PCM) += snd-soc-hostless-pcm.o
 snd-soc-msm8660-apq-objs := msm8660-apq-wm8903.o
 obj-$(CONFIG_SND_SOC_MSM8660_APQ) += snd-soc-msm8660-apq.o
 
+ifeq ($(PANTECH_CARRIER_NAME),KDDI)
+obj-y += sky_snd_ak7811abb.o
+endif
+
 # for MDM 9615 sound card driver
 snd-soc-mdm9615-objs := mdm9615.o
 obj-$(CONFIG_SND_SOC_MDM9615) += snd-soc-mdm9615.o

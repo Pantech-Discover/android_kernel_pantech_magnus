@@ -145,6 +145,17 @@ static void free_fib_info_rcu(struct rcu_head *head)
 {
 	struct fib_info *fi = container_of(head, struct fib_info, rcu);
 
+// FEATURE_PS_FIX_KERNEL_CRACH_FIB_SEMANTICS  
+// ipv4: fix the rcu race between free_fib_info and ip_route_output_slow
+// start
+	change_nexthops(fi) {
+		if (nexthop_nh->nh_dev)
+			dev_put(nexthop_nh->nh_dev);
+	} endfor_nexthops(fi);
+
+  release_net(fi->fib_net);
+// end
+
 	if (fi->fib_metrics != (u32 *) dst_default_metrics)
 		kfree(fi->fib_metrics);
 	kfree(fi);
@@ -156,13 +167,23 @@ void free_fib_info(struct fib_info *fi)
 		pr_warn("Freeing alive fib_info %p\n", fi);
 		return;
 	}
-	change_nexthops(fi) {
-		if (nexthop_nh->nh_dev)
-			dev_put(nexthop_nh->nh_dev);
-		nexthop_nh->nh_dev = NULL;
-	} endfor_nexthops(fi);
+// FEATURE_PS_FIX_KERNEL_CRACH_FIB_SEMANTICS  
+// ipv4: fix the rcu race between free_fib_info and ip_route_output_slow
+// start  
+//	change_nexthops(fi) {
+//		if (nexthop_nh->nh_dev)
+//			dev_put(nexthop_nh->nh_dev);
+//		nexthop_nh->nh_dev = NULL;
+//	} endfor_nexthops(fi);
+// end
+
 	fib_info_cnt--;
-	release_net(fi->fib_net);
+// FEATURE_PS_FIX_KERNEL_CRACH_FIB_SEMANTICS  
+// ipv4: fix the rcu race between free_fib_info and ip_route_output_slow
+// start  
+//	release_net(fi->fib_net);
+// end
+
 	call_rcu(&fi->rcu, free_fib_info_rcu);
 }
 

@@ -48,7 +48,9 @@ static bool scroll_acceleration = false;
 module_param(scroll_acceleration, bool, 0644);
 MODULE_PARM_DESC(scroll_acceleration, "Accelerate sequential scroll events");
 
-static bool report_touches = true;
+//20120427 lhw_device magicmouse operation fix ++++
+static bool report_touches = false; //true;
+//20120427 lhw_device magicmouse operation fix ---
 module_param(report_touches, bool, 0644);
 MODULE_PARM_DESC(report_touches, "Emit touch records (otherwise, only use them for emulation)");
 
