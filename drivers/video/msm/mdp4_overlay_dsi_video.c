@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 /* Copyright (c) 2010-2012, The Linux Foundation. All rights reserved.
+=======
+/* Copyright (c) 2010-2013, The Linux Foundation. All rights reserved.
+>>>>>>> a0bdd8cd7583e79c5cf2fae2d296be1ba7dc1cd6
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -56,8 +60,11 @@ static struct vsycn_ctrl {
 	int wait_vsync_cnt;
 	int blt_change;
 	int blt_free;
+<<<<<<< HEAD
 	u32 blt_ctrl;
 	u32 blt_mode;
+=======
+>>>>>>> a0bdd8cd7583e79c5cf2fae2d296be1ba7dc1cd6
 	int sysfs_created;
 	struct mutex update_lock;
 	struct completion ov_comp;
@@ -260,9 +267,15 @@ void mdp4_dsi_video_vsync_ctrl(struct fb_info *info, int enable)
 
 	if (vctrl->vsync_irq_enabled == enable)
 		return;
+<<<<<<< HEAD
 
 	pr_debug("%s: vsync enable=%d\n", __func__, enable);
 
+=======
+
+	pr_info("%s: vsync enable=%d\n", __func__, enable);
+
+>>>>>>> a0bdd8cd7583e79c5cf2fae2d296be1ba7dc1cd6
 	vctrl->vsync_irq_enabled = enable;
 
 	if (enable)
@@ -1099,7 +1112,8 @@ void mdp4_dsi_video_overlay(struct msm_fb_data_type *mfd)
 	uint8 *buf;
 	unsigned int buf_offset;
 	int bpp;
-	int cnt, cndx = 0;
+	int cndx = 0;
+	int cnt = 0;
 	struct vsycn_ctrl *vctrl;
 	struct mdp4_overlay_pipe *pipe;
 
@@ -1129,6 +1143,10 @@ void mdp4_dsi_video_overlay(struct msm_fb_data_type *mfd)
 	cnt = 0;
 	mutex_lock(&mfd->dma->ov_mutex);
 	cnt = mdp4_dsi_video_pipe_commit(cndx, 0);
+<<<<<<< HEAD
+=======
+	mutex_unlock(&mfd->dma->ov_mutex);
+>>>>>>> a0bdd8cd7583e79c5cf2fae2d296be1ba7dc1cd6
 
 	if (cnt) {
 		if (pipe->ov_blt_addr)

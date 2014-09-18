@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 /* Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
+=======
+/* Copyright (c) 2011-2013, The Linux Foundation. All rights reserved.
+>>>>>>> a0bdd8cd7583e79c5cf2fae2d296be1ba7dc1cd6
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -75,9 +79,12 @@ static struct vsycn_ctrl {
 	int dmae_wait_cnt;
 	int wait_vsync_cnt;
 	int blt_change;
+<<<<<<< HEAD
 	int blt_ctrl;
 	int blt_mode;
 	int blt_free;
+=======
+>>>>>>> a0bdd8cd7583e79c5cf2fae2d296be1ba7dc1cd6
 	int sysfs_created;
 	struct mutex update_lock;
 	struct completion ov_comp;
@@ -249,12 +256,18 @@ int mdp4_dtv_pipe_commit(int cndx, int wait)
 	spin_unlock_irqrestore(&vctrl->spin_lock, flags);
 	mdp4_stat.overlay_commit[pipe->mixer_num]++;
 
+<<<<<<< HEAD
 	if (wait) {
 		if (pipe->ov_blt_addr)
 			mdp4_dtv_wait4ov(cndx);
 		else
 			mdp4_dtv_wait4dmae(cndx);
 	}
+=======
+	if (wait)
+		mdp4_dtv_wait4dmae(cndx);
+
+>>>>>>> a0bdd8cd7583e79c5cf2fae2d296be1ba7dc1cd6
 	return cnt;
 }
 
@@ -370,6 +383,7 @@ ssize_t mdp4_dtv_show_event(struct device *dev,
 		INIT_COMPLETION(vctrl->vsync_comp);
 	vctrl->wait_vsync_cnt++;
 	spin_unlock_irqrestore(&vctrl->spin_lock, flags);
+<<<<<<< HEAD
 
 	ret = wait_for_completion_interruptible_timeout(&vctrl->vsync_comp,
 		msecs_to_jiffies(VSYNC_PERIOD * 4));
@@ -410,7 +424,26 @@ static void mdp4_dtv_wait4dmae_done(int cndx)
 	spin_unlock_irqrestore(&vctrl->spin_lock, flags);
 	mdp4_dtv_wait4dmae(cndx);
 }
+=======
+>>>>>>> a0bdd8cd7583e79c5cf2fae2d296be1ba7dc1cd6
 
+	ret = wait_for_completion_interruptible_timeout(&vctrl->vsync_comp,
+		msecs_to_jiffies(VSYNC_PERIOD * 4));
+	if (ret <= 0) {
+		vctrl->wait_vsync_cnt = 0;
+		vsync_tick = ktime_to_ns(ktime_get());
+		ret = snprintf(buf, PAGE_SIZE, "VSYNC=%llu", vsync_tick);
+		buf[strlen(buf) + 1] = '\0';
+		return ret;
+	}
+	spin_lock_irqsave(&vctrl->spin_lock, flags);
+	vsync_tick = ktime_to_ns(vctrl->vsync_time);
+	spin_unlock_irqrestore(&vctrl->spin_lock, flags);
+
+	ret = snprintf(buf, PAGE_SIZE, "VSYNC=%llu", vsync_tick);
+	buf[strlen(buf) + 1] = '\0';
+	return ret;
+}
 void mdp4_dtv_vsync_init(int cndx)
 {
 	struct vsycn_ctrl *vctrl;
@@ -615,10 +648,13 @@ int mdp4_dtv_on(struct platform_device *pdev)
 
 	vctrl->mfd = mfd;
 	vctrl->dev = mfd->fbi->dev;
+<<<<<<< HEAD
 	pinfo = &mfd->panel_info;
 
 	vctrl->blt_ctrl = pinfo->lcd.blt_ctrl;
 	vctrl->blt_mode = pinfo->lcd.blt_mode;
+=======
+>>>>>>> a0bdd8cd7583e79c5cf2fae2d296be1ba7dc1cd6
 
 	mdp_footswitch_ctrl(TRUE);
 	/* Mdp clock enable */

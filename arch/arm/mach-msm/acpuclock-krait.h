@@ -39,6 +39,7 @@ enum src_id {
 	PLL_0 = 0,
 	HFPLL,
 	PLL_8,
+	NUM_SRC_ID
 };
 
 /**
@@ -46,12 +47,16 @@ enum src_id {
  */
 enum pvs {
 	PVS_SLOW = 0,
-	PVS_NOMINAL,
-	PVS_FAST,
-	PVS_FASTER,
-	PVS_UNKNOWN,
-	NUM_PVS
+	PVS_NOMINAL = 1,
+	PVS_FAST = 3,
+	PVS_FASTER = 4,
+	NUM_PVS = 7
 };
+
+/**
+ * The maximum number of speed bins.
+ */
+#define NUM_SPEED_BINS (16)
 
 /**
  * enum scalables - IDs of frequency scalable hardware blocks.
@@ -62,6 +67,7 @@ enum scalables {
 	CPU2,
 	CPU3,
 	L2,
+	MAX_SCALABLES
 };
 
 
@@ -177,8 +183,8 @@ struct hfpll_data {
 	const bool has_droop_ctl;
 	const u32 droop_offset;
 	const u32 droop_val;
-	const u32 low_vdd_l_max;
-	const u32 nom_vdd_l_max;
+	u32 low_vdd_l_max;
+	u32 nom_vdd_l_max;
 	const int vdd[NUM_HFPLL_VDD];
 };
 
@@ -227,7 +233,7 @@ struct pvs_table {
  * @scalable: Array of scalables.
  * @scalable_size: Size of @scalable.
  * @hfpll_data: HFPLL configuration data.
- * @pvs_tables: CPU frequency tables.
+ * @pvs_tables: 2D array of CPU frequency tables.
  * @l2_freq_tbl: L2 frequency table.
  * @l2_freq_tbl_size: Size of @l2_freq_tbl.
  * @pte_efuse_phys: Physical address of PTE EFUSE.
@@ -238,7 +244,7 @@ struct acpuclk_krait_params {
 	struct scalable *scalable;
 	size_t scalable_size;
 	struct hfpll_data *hfpll_data;
-	struct pvs_table *pvs_tables;
+	struct pvs_table (*pvs_tables)[NUM_PVS];
 	struct l2_level *l2_freq_tbl;
 	size_t l2_freq_tbl_size;
 	phys_addr_t pte_efuse_phys;
@@ -247,6 +253,35 @@ struct acpuclk_krait_params {
 };
 
 /**
+<<<<<<< HEAD
+=======
+ * struct drv_data - Driver state
+ * @acpu_freq_tbl: CPU frequency table.
+ * @l2_freq_tbl: L2 frequency table.
+ * @scalable: Array of scalables (CPUs and L2).
+ * @hfpll_data: High-frequency PLL data.
+ * @bus_perf_client: Bus driver client handle.
+ * @bus_scale: Bus driver scaling data.
+ * @boost_uv: Voltage boost amount
+ * @speed_bin: Speed bin ID.
+ * @pvs_bin: PVS bin ID.
+ * @dev: Device.
+ */
+struct drv_data {
+	struct acpu_level *acpu_freq_tbl;
+	const struct l2_level *l2_freq_tbl;
+	struct scalable *scalable;
+	struct hfpll_data *hfpll_data;
+	u32 bus_perf_client;
+	struct msm_bus_scale_pdata *bus_scale;
+	int boost_uv;
+	int speed_bin;
+	int pvs_bin;
+	struct device *dev;
+};
+
+/**
+>>>>>>> a0bdd8cd7583e79c5cf2fae2d296be1ba7dc1cd6
  * struct acpuclk_platform_data - PMIC configuration data.
  * @uses_pm8917: Boolean indicates presence of pm8917.
  */
@@ -259,4 +294,17 @@ struct acpuclk_platform_data {
  */
 extern int acpuclk_krait_init(struct device *dev,
 			      const struct acpuclk_krait_params *params);
+<<<<<<< HEAD
+=======
+
+#ifdef CONFIG_DEBUG_FS
+/**
+ * acpuclk_krait_debug_init - Initialize debugfs interface.
+ */
+extern void __init acpuclk_krait_debug_init(struct drv_data *drv);
+#else
+static inline void acpuclk_krait_debug_init(void) { }
+#endif
+
+>>>>>>> a0bdd8cd7583e79c5cf2fae2d296be1ba7dc1cd6
 #endif

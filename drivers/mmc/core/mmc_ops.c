@@ -413,11 +413,19 @@ int __mmc_switch(struct mmc_card *card, u8 set, u8 index, u8 value,
 	if (err)
 		return err;
 
+<<<<<<< HEAD
+	/* No need to check card status in case of unblocking command */
+	if (!use_busy_signal)
+		return 0;
+=======
+>>>>>>> a0bdd8cd7583e79c5cf2fae2d296be1ba7dc1cd6
+
+	mmc_delay(1);
+
 	/* No need to check card status in case of unblocking command */
 	if (!use_busy_signal)
 		return 0;
 
-	mmc_delay(1);
 	/* Must check status to be sure of no errors */
 	timeout = jiffies + msecs_to_jiffies(MMC_OPS_TIMEOUT_MS);
 	do {

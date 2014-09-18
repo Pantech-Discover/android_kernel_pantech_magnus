@@ -26,7 +26,6 @@
 #include <linux/spi/spi.h>
 #include <linux/slimbus/slimbus.h>
 #include <linux/bootmem.h>
-#include <linux/msm_kgsl.h>
 #ifdef CONFIG_ANDROID_PMEM
 #include <linux/android_pmem.h>
 #endif
@@ -87,6 +86,7 @@
 #include <mach/scm.h>
 #include <mach/iommu_domains.h>
 
+#include <mach/kgsl.h>
 #include <linux/fmem.h>
 
 #include "timer.h"
@@ -1450,11 +1450,18 @@ static void __init msm8960_init_buses(void)
 	msm_bus_rpm_set_mt_mask();
 	msm_bus_8960_apps_fabric_pdata.rpm_enabled = 1;
 	msm_bus_8960_sys_fabric_pdata.rpm_enabled = 1;
-	msm_bus_8960_mm_fabric_pdata.rpm_enabled = 1;
 	msm_bus_apps_fabric.dev.platform_data =
 		&msm_bus_8960_apps_fabric_pdata;
 	msm_bus_sys_fabric.dev.platform_data = &msm_bus_8960_sys_fabric_pdata;
-	msm_bus_mm_fabric.dev.platform_data = &msm_bus_8960_mm_fabric_pdata;
+	if (cpu_is_msm8960ab()) {
+		msm_bus_8960_sg_mm_fabric_pdata.rpm_enabled = 1;
+		msm_bus_mm_fabric.dev.platform_data =
+			&msm_bus_8960_sg_mm_fabric_pdata;
+	} else {
+		msm_bus_8960_mm_fabric_pdata.rpm_enabled = 1;
+		msm_bus_mm_fabric.dev.platform_data =
+			&msm_bus_8960_mm_fabric_pdata;
+	}
 	msm_bus_sys_fpb.dev.platform_data = &msm_bus_8960_sys_fpb_pdata;
 	msm_bus_cpss_fpb.dev.platform_data = &msm_bus_8960_cpss_fpb_pdata;
 #endif
@@ -1648,6 +1655,7 @@ static uint8_t spm_power_collapse_with_rpm[] __initdata = {
 			0x24, 0x30, 0x0f,
 };
 
+<<<<<<< HEAD
 static struct msm_spm_seq_entry msm_spm_boot_cpu_seq_list[] __initdata = {
 	[0] = {
 		.mode = MSM_SPM_MODE_CLOCK_GATING,
@@ -1674,6 +1682,23 @@ static struct msm_spm_seq_entry msm_spm_boot_cpu_seq_list[] __initdata = {
 };
 
 static struct msm_spm_seq_entry msm_spm_nonboot_cpu_seq_list[] __initdata = {
+=======
+/* 8960AB has a different command to assert apc_pdn */	
+static uint8_t spm_power_collapse_without_rpm_krait_v3[] __initdata = {	
+       0x00, 0x24, 0x84, 0x10,	
+       0x09, 0x03, 0x01,
+       0x10, 0x84, 0x30, 0x0C,
+       0x24, 0x30, 0x0f,
+};
+
+static uint8_t spm_power_collapse_with_rpm_krait_v3[] __initdata = {
+	0x00, 0x24, 0x84, 0x10,
+	0x09, 0x07, 0x01, 0x0B,
+	0x10, 0x84, 0x30, 0x0C,
+	0x24, 0x30, 0x0f,
+};
+static struct msm_spm_seq_entry msm_spm_seq_list[] __initdata = {
+>>>>>>> a0bdd8cd7583e79c5cf2fae2d296be1ba7dc1cd6
 	[0] = {
 		.mode = MSM_SPM_MODE_CLOCK_GATING,
 		.notify_rpm = false,
@@ -1696,8 +1721,8 @@ static struct msm_spm_platform_data msm_spm_data[] __initdata = {
 		.reg_base_addr = MSM_SAW0_BASE,
 		.reg_init_values[MSM_SPM_REG_SAW2_CFG] = 0x1F,
 #if defined(CONFIG_MSM_AVS_HW)
-		.reg_init_values[MSM_SPM_REG_SAW2_AVS_CTL] = 0x00,
-		.reg_init_values[MSM_SPM_REG_SAW2_AVS_HYSTERESIS] = 0x00,
+		.reg_init_values[MSM_SPM_REG_SAW2_AVS_CTL] = 0x58589464,
+		.reg_init_values[MSM_SPM_REG_SAW2_AVS_HYSTERESIS] = 0x00020000,
 #endif
 		.reg_init_values[MSM_SPM_REG_SAW2_SPM_CTL] = 0x01,
 		.reg_init_values[MSM_SPM_REG_SAW2_PMIC_DLY] = 0x03020004,
@@ -1711,8 +1736,8 @@ static struct msm_spm_platform_data msm_spm_data[] __initdata = {
 		.reg_base_addr = MSM_SAW1_BASE,
 		.reg_init_values[MSM_SPM_REG_SAW2_CFG] = 0x1F,
 #if defined(CONFIG_MSM_AVS_HW)
-		.reg_init_values[MSM_SPM_REG_SAW2_AVS_CTL] = 0x00,
-		.reg_init_values[MSM_SPM_REG_SAW2_AVS_HYSTERESIS] = 0x00,
+		.reg_init_values[MSM_SPM_REG_SAW2_AVS_CTL] = 0x58589464,
+		.reg_init_values[MSM_SPM_REG_SAW2_AVS_HYSTERESIS] = 0x00020000,
 #endif
 		.reg_init_values[MSM_SPM_REG_SAW2_SPM_CTL] = 0x01,
 		.reg_init_values[MSM_SPM_REG_SAW2_PMIC_DLY] = 0x02020204,
@@ -2549,7 +2574,6 @@ static struct msm_serial_hs_platform_data msm_uart_dm9_pdata;
 #endif
 
 static struct platform_device *common_devices[] __initdata = {
-	&msm8960_device_acpuclk,
 	&msm8960_device_dmov,
 	&msm_device_smd,
 	&msm_device_uart_dm6,
@@ -2595,7 +2619,6 @@ static struct platform_device *common_devices[] __initdata = {
 	&msm8960_android_pmem_audio_device,
 #endif
 #endif
-	&msm_device_vidc,
 	&msm_device_bam_dmux,
 	&msm_fm_platform_init,
 #if defined(CONFIG_TSIF) || defined(CONFIG_TSIF_MODULE)
@@ -2726,11 +2749,6 @@ static struct platform_device *cdp_devices[] __initdata = {
 	&msm_cpudai_auxpcm_tx,
 	&msm_cpu_fe,
 	&msm_stub_codec,
-	&msm_kgsl_3d0,
-#ifdef CONFIG_MSM_KGSL_2D
-	&msm_kgsl_2d0,
-	&msm_kgsl_2d1,
-#endif
 #ifdef CONFIG_MSM_GEMINI
 	&msm8960_gemini_device,
 #endif
@@ -2777,12 +2795,39 @@ static void __init msm8960_i2c_init(void)
 
 static void __init msm8960_gfx_init(void)
 {
+	struct kgsl_device_platform_data *kgsl_3d0_pdata =
+		msm_kgsl_3d0.dev.platform_data;
 	uint32_t soc_platform_version = socinfo_get_version();
-	if (SOCINFO_VERSION_MAJOR(soc_platform_version) == 1) {
-		struct kgsl_device_platform_data *kgsl_3d0_pdata =
-				msm_kgsl_3d0.dev.platform_data;
-		kgsl_3d0_pdata->pwrlevel[0].gpu_freq = 320000000;
-		kgsl_3d0_pdata->pwrlevel[1].gpu_freq = 266667000;
+
+	/* Fixup data that needs to change based on GPU ID */
+	if (cpu_is_msm8960ab()) {
+		if (SOCINFO_VERSION_MINOR(soc_platform_version) == 0)
+			kgsl_3d0_pdata->chipid = ADRENO_CHIPID(3, 2, 1, 0);
+		else
+			kgsl_3d0_pdata->chipid = ADRENO_CHIPID(3, 2, 1, 1);
+		kgsl_3d0_pdata->pwrlevel[1].gpu_freq = 320000000;
+	} else {
+		kgsl_3d0_pdata->iommu_count = 1;
+		if (SOCINFO_VERSION_MAJOR(soc_platform_version) == 1) {
+			kgsl_3d0_pdata->pwrlevel[0].gpu_freq = 320000000;
+			kgsl_3d0_pdata->pwrlevel[1].gpu_freq = 266667000;
+		}
+		if (SOCINFO_VERSION_MAJOR(soc_platform_version) >= 3) {
+			/* 8960v3 GPU registers returns 5 for patch release
+			 * but it should be 6, so dummy up the chipid here
+			 * based the platform type
+			 */
+			kgsl_3d0_pdata->chipid = ADRENO_CHIPID(2, 2, 0, 6);
+		}
+	}
+
+	/* Register the 3D core */
+	platform_device_register(&msm_kgsl_3d0);
+
+	/* Register the 2D cores if we are not 8960PRO */
+	if (!cpu_is_msm8960ab()) {
+		platform_device_register(&msm_kgsl_2d0);
+		platform_device_register(&msm_kgsl_2d1);
 	}
 }
 
@@ -3095,6 +3140,25 @@ static void __init register_i2c_devices(void)
 #endif
 }
 
+static void __init msm8960ab_update_krait_spm(void)
+{
+       int i;
+	/* Update the SPM sequences for SPC and PC */
+	for (i = 0; i < ARRAY_SIZE(msm_spm_data); i++) {
+		int j;
+		struct msm_spm_platform_data *pdata = &msm_spm_data[i];	
+		for (j = 0; j < pdata->num_modes; j++) {
+			if (pdata->modes[j].cmd ==
+				spm_power_collapse_without_rpm)
+				pdata->modes[j].cmd =
+					spm_power_collapse_without_rpm_krait_v3;
+			else if (pdata->modes[j].cmd ==	
+				spm_power_collapse_with_rpm)
+				pdata->modes[j].cmd =
+					spm_power_collapse_with_rpm_krait_v3;
+		}
+	}
+}
 static void __init msm8960_sim_init(void)
 {
 	struct msm_watchdog_pdata *wdog_pdata = (struct msm_watchdog_pdata *)
@@ -3113,6 +3177,8 @@ static void __init msm8960_sim_init(void)
 	msm8960_device_otg.dev.platform_data = &msm_otg_pdata;
 	msm8960_init_gpiomux();
 	msm8960_i2c_init();
+	if (cpu_is_msm8960ab())
+		msm8960ab_update_krait_spm();
 	msm_spm_init(msm_spm_data, ARRAY_SIZE(msm_spm_data));
 	msm_spm_l2_init(msm_spm_l2_data);
 	msm8960_init_buses();
@@ -3162,12 +3228,21 @@ static void __init msm8960_rumi3_init(void)
 	msm_pm_init_sleep_status_data(&msm_pm_slp_sts_data);
 }
 
+static void __init msm8960_tsens_init(void)
+{
+	if (cpu_is_msm8960())
+		if (SOCINFO_VERSION_MAJOR(socinfo_get_version()) == 1)
+			return;
+
+	msm_tsens_early_init(&msm_tsens_pdata);
+}
+
 static void __init msm8960_cdp_init(void)
 {
 	if (meminfo_init(SYS_MEMORY, SZ_256M) < 0)
 		pr_err("meminfo_init() failed!\n");
 
-	msm_tsens_early_init(&msm_tsens_pdata);
+	msm8960_tsens_init();
 	msm_thermal_init(&msm_thermal_pdata);
 	BUG_ON(msm_rpm_init(&msm8960_rpm_data));
 	BUG_ON(msm_rpmrs_levels_init(&msm_rpmrs_data));
@@ -3225,6 +3300,13 @@ static void __init msm8960_cdp_init(void)
 	}
 
 	platform_add_devices(common_devices, ARRAY_SIZE(common_devices));
+	msm8960_add_vidc_device();
+
+	if (cpu_is_msm8960ab())
+		platform_device_register(&msm8960ab_device_acpuclk);
+	else
+		platform_device_register(&msm8960_device_acpuclk);
+
 	msm8960_pm8921_gpio_mpp_init();
 	platform_add_devices(cdp_devices, ARRAY_SIZE(cdp_devices));
 	msm8960_init_smsc_hub();

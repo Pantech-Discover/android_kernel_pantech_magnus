@@ -17,6 +17,7 @@
 #include <linux/module.h>
 #include <linux/mempool.h>
 #include <linux/mutex.h>
+#include <linux/spinlock.h>
 #include <linux/workqueue.h>
 #include <linux/sched.h>
 #include <mach/msm_smd.h>
@@ -268,12 +269,14 @@ struct diagchar_dev {
 	struct diag_request *write_ptr_mdm;
 	/* HSIC variables */
 	int hsic_ch;
+	int hsic_inited;
 	int hsic_device_enabled;
 	int hsic_device_opened;
 	int hsic_suspend;
 	int in_busy_hsic_read_on_device;
 	int in_busy_hsic_write;
 	struct work_struct diag_read_hsic_work;
+	struct mutex bridge_mutex;
 	/* USB MDM channel variables */
 	int usb_mdm_connected;
 	int read_len_mdm;
@@ -295,6 +298,10 @@ struct diagchar_dev {
 	mempool_t *diag_hsic_write_pool;
 	int num_hsic_buf_tbl_entries;
 	struct diag_write_device *hsic_buf_tbl;
+<<<<<<< HEAD
+=======
+	spinlock_t hsic_spinlock;
+>>>>>>> a0bdd8cd7583e79c5cf2fae2d296be1ba7dc1cd6
 #endif
 };
 

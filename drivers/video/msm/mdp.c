@@ -2181,7 +2181,12 @@ static int mdp_on(struct platform_device *pdev)
 	if (mdp_rev == MDP_REV_303 && mfd->panel.type == MIPI_CMD_PANEL) {
 
 		vsync_cntrl.dev = mfd->fbi->dev;
+<<<<<<< HEAD
 		atomic_set(&vsync_cntrl.suspend, 1);
+=======
+		atomic_set(&vsync_cntrl.suspend, 0);
+		atomic_set(&vsync_cntrl.vsync_resume, 1);
+>>>>>>> a0bdd8cd7583e79c5cf2fae2d296be1ba7dc1cd6
 	}
 
 	mdp_pipe_ctrl(MDP_CMD_BLOCK, MDP_BLOCK_POWER_ON, FALSE);
@@ -2844,9 +2849,19 @@ static int mdp_probe(struct platform_device *pdev)
 
 	pdev_list[pdev_list_cnt++] = pdev;
 	mdp4_extn_disp = 0;
+<<<<<<< HEAD
 
 	if (mfd->vsync_init != NULL) {
 		mfd->vsync_init(0);
+=======
+	/*
+	 * vsync_init call not required for mdp3.
+	 * vsync_init call required for mdp4 targets.
+	 */
+	if ((mfd->vsync_init != NULL) || (mdp_rev < MDP_REV_40)) {
+		if (mdp_rev >= MDP_REV_40)
+			mfd->vsync_init(0);
+>>>>>>> a0bdd8cd7583e79c5cf2fae2d296be1ba7dc1cd6
 
 		if (!mfd->vsync_sysfs_created) {
 			mfd->dev_attr.attr.name = "vsync_event";

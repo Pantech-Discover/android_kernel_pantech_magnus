@@ -357,7 +357,11 @@ bkops_check_threshold_store(struct device *dev,
 	card->bkops_info.min_sectors_to_queue_delayed_work =
 		(card_size * value) / 100;
 
+<<<<<<< HEAD
 	pr_debug("%s: size_percentage = %d, min_sectors = %d",
+=======
+	pr_info("%s: size_percentage = %d, min_sectors = %d",
+>>>>>>> a0bdd8cd7583e79c5cf2fae2d296be1ba7dc1cd6
 			mmc_hostname(card->host),
 			card->bkops_info.size_percentage_to_queue_delayed_work,
 			card->bkops_info.min_sectors_to_queue_delayed_work);
@@ -1020,9 +1024,6 @@ retry:
 			goto out;
 	}
 
-	if (mmc_can_sanitize(card))
-		err = mmc_switch(card, EXT_CSD_CMD_SET_NORMAL,
-				 EXT_CSD_SANITIZE_START, 1, 0);
 out_retry:
 	if (err && !mmc_blk_reset(md, card->host, type))
 		goto retry;
@@ -1818,6 +1819,7 @@ static int mmc_blk_cmd_err(struct mmc_blk_data *md, struct mmc_card *card,
 		if (mq_rq->packed_cmd == MMC_PACKED_NONE)
 			ret = blk_end_request(req, 0, brq->data.bytes_xfered);
 	}
+
 	return ret;
 }
 

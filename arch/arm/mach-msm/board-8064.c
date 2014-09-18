@@ -726,12 +726,6 @@ static void __init apq8064_early_reserve(void)
 static struct msm_bus_vectors hsic_init_vectors[] = {
 	{
 		.src = MSM_BUS_MASTER_SPS,
-		.dst = MSM_BUS_SLAVE_EBI_CH0,
-		.ab = 0,
-		.ib = 0,
-	},
-	{
-		.src = MSM_BUS_MASTER_SPS,
 		.dst = MSM_BUS_SLAVE_SPS,
 		.ab = 0,
 		.ib = 0,
@@ -742,15 +736,9 @@ static struct msm_bus_vectors hsic_init_vectors[] = {
 static struct msm_bus_vectors hsic_max_vectors[] = {
 	{
 		.src = MSM_BUS_MASTER_SPS,
-		.dst = MSM_BUS_SLAVE_EBI_CH0,
-		.ab = 60000000,		/* At least 480Mbps on bus. */
-		.ib = 960000000,	/* MAX bursts rate */
-	},
-	{
-		.src = MSM_BUS_MASTER_SPS,
 		.dst = MSM_BUS_SLAVE_SPS,
 		.ab = 0,
-		.ib = 512000000, /*vote for 64Mhz dfab clk rate*/
+		.ib = 256000000, /*vote for 32Mhz dfab clk rate*/
 	},
 };
 
@@ -1977,7 +1965,15 @@ static uint8_t spm_power_collapse_with_rpm[] __initdata = {
 	0x10, 0x54, 0x30, 0x0C,
 	0x24, 0x30, 0x0f,
 };
+/* 8064AB has a different command to assert apc_pdn */	
+static uint8_t spm_power_collapse_without_rpm_krait_v3[] __initdata = {	
+       0x00, 0x24, 0x84, 0x10,	
+       0x09, 0x03, 0x01,
+       0x10, 0x84, 0x30, 0x0C,
+       0x24, 0x30, 0x0f,
+};
 
+<<<<<<< HEAD
 static struct msm_spm_seq_entry msm_spm_boot_cpu_seq_list[] __initdata = {
 	[0] = {
 		.mode = MSM_SPM_MODE_CLOCK_GATING,
@@ -2001,6 +1997,15 @@ static struct msm_spm_seq_entry msm_spm_boot_cpu_seq_list[] __initdata = {
 	},
 };
 static struct msm_spm_seq_entry msm_spm_nonboot_cpu_seq_list[] __initdata = {
+=======
+static uint8_t spm_power_collapse_with_rpm_krait_v3[] __initdata = {
+	0x00, 0x24, 0x84, 0x10,
+	0x09, 0x07, 0x01, 0x0B,
+	0x10, 0x84, 0x30, 0x0C,
+	0x24, 0x30, 0x0f,
+};
+static struct msm_spm_seq_entry msm_spm_seq_list[] __initdata = {
+>>>>>>> a0bdd8cd7583e79c5cf2fae2d296be1ba7dc1cd6
 	[0] = {
 		.mode = MSM_SPM_MODE_CLOCK_GATING,
 		.notify_rpm = false,
@@ -2136,6 +2141,25 @@ static struct msm_pm_sleep_status_data msm_pm_slp_sts_data = {
 	.mask = 1UL << 13,
 };
 
+static void __init apq8064ab_update_krait_spm(void)
+{
+       int i;
+	/* Update the SPM sequences for SPC and PC */
+	for (i = 0; i < ARRAY_SIZE(msm_spm_data); i++) {
+		int j;
+		struct msm_spm_platform_data *pdata = &msm_spm_data[i];	
+		for (j = 0; j < pdata->num_modes; j++) {
+			if (pdata->modes[j].cmd ==
+				spm_power_collapse_without_rpm)
+				pdata->modes[j].cmd =
+					spm_power_collapse_without_rpm_krait_v3;
+			else if (pdata->modes[j].cmd ==	
+				spm_power_collapse_with_rpm)
+				pdata->modes[j].cmd =
+					spm_power_collapse_with_rpm_krait_v3;
+		}
+	}
+}
 static void __init apq8064_init_buses(void)
 {
 	msm_bus_rpm_set_mt_mask();
@@ -2996,6 +3020,8 @@ static void enable_avc_i2c_bus(void)
 
 static void __init apq8064_common_init(void)
 {
+	struct msm_rpmrs_level rpmrs_level;
+
 	msm_tsens_early_init(&apq_tsens_pdata);
 	msm_thermal_init(&msm_thermal_pdata);
 	if (socinfo_init() < 0)
@@ -3029,8 +3055,12 @@ static void __init apq8064_common_init(void)
 		platform_add_devices(common_not_mpq_devices,
 			ARRAY_SIZE(common_not_mpq_devices));
 	enable_ddr3_regulator();
-	msm_hsic_pdata.swfi_latency =
-		msm_rpmrs_levels[0].latency_us;
+	rpmrs_level =
+		msm_rpmrs_levels[MSM_PM_SLEEP_MODE_WAIT_FOR_INTERRUPT];
+	msm_hsic_pdata.swfi_latency = rpmrs_level.latency_us;
+	rpmrs_level =
+		msm_rpmrs_levels[MSM_PM_SLEEP_MODE_POWER_COLLAPSE_STANDALONE];
+	msm_hsic_pdata.standalone_latency = rpmrs_level.latency_us;
 	if (machine_is_apq8064_mtp()) {
 		msm_hsic_pdata.log2_irq_thresh = 5,
 		apq8064_device_hsic_host.dev.platform_data = &msm_hsic_pdata;
@@ -3047,6 +3077,8 @@ static void __init apq8064_common_init(void)
 	slim_register_board_info(apq8064_slim_devices,
 		ARRAY_SIZE(apq8064_slim_devices));
 	apq8064_init_dsps();
+	if (cpu_is_apq8064ab())
+		apq8064ab_update_krait_spm();
 	msm_spm_init(msm_spm_data, ARRAY_SIZE(msm_spm_data));
 	msm_spm_l2_init(msm_spm_l2_data);
 	BUG_ON(msm_pm_boot_init(&msm_pm_boot_pdata));

@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 /* Copyright (c) 2009-2012, The Linux Foundation. All rights reserved.
+=======
+/* Copyright (c) 2009-2013, The Linux Foundation. All rights reserved.
+>>>>>>> a0bdd8cd7583e79c5cf2fae2d296be1ba7dc1cd6
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -320,7 +324,7 @@ void mipi_dsi_pre_kickoff_del(struct dsi_kickoff_action *act);
 void mipi_dsi_post_kickoff_del(struct dsi_kickoff_action *act);
 void mipi_dsi_controller_cfg(int enable);
 void mipi_dsi_sw_reset(void);
-void mipi_dsi_mdp_busy_wait(void);
+void mipi_dsi_mdp_busy_wait(struct msm_fb_data_type *mfd);
 
 irqreturn_t mipi_dsi_isr(int irq, void *ptr);
 

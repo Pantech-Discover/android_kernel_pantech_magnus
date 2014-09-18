@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 /* Copyright (c) 2009-2012, The Linux Foundation. All rights reserved.
+=======
+/* Copyright (c) 2009-2013, The Linux Foundation. All rights reserved.
+>>>>>>> a0bdd8cd7583e79c5cf2fae2d296be1ba7dc1cd6
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -940,7 +944,8 @@ void mdp4_lcdc_overlay(struct msm_fb_data_type *mfd)
 	uint8 *buf;
 	unsigned int buf_offset;
 	int bpp;
-	int cnt, cndx = 0;
+	int cndx = 0;
+	int cnt = 0;
 	struct vsycn_ctrl *vctrl;
 	struct mdp4_overlay_pipe *pipe;
 
@@ -971,6 +976,10 @@ void mdp4_lcdc_overlay(struct msm_fb_data_type *mfd)
 	cnt = 0;
 	mutex_lock(&mfd->dma->ov_mutex);
 	cnt = mdp4_lcdc_pipe_commit(cndx, 0);
+<<<<<<< HEAD
+=======
+	mutex_unlock(&mfd->dma->ov_mutex);
+>>>>>>> a0bdd8cd7583e79c5cf2fae2d296be1ba7dc1cd6
 
 	if (cnt) {
 		if (pipe->ov_blt_addr)

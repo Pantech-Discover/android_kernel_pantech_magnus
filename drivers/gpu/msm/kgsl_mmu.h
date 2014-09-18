@@ -317,6 +317,7 @@ static inline int kgsl_mmu_gpuaddr_in_range(unsigned int gpuaddr)
 		(gpuaddr < (KGSL_PAGETABLE_BASE + kgsl_mmu_get_ptsize())));
 }
 
+<<<<<<< HEAD
 static inline int kgsl_mmu_sync_lock(struct kgsl_mmu *mmu,
 				unsigned int *cmds)
 {
@@ -337,4 +338,6 @@ static inline int kgsl_mmu_sync_unlock(struct kgsl_mmu *mmu,
 		return 0;
 }
 
+=======
+>>>>>>> a0bdd8cd7583e79c5cf2fae2d296be1ba7dc1cd6
 #endif /* __KGSL_MMU_H */

@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 /* Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
+=======
+/* Copyright (c) 2011-2013, Linux Foundation. All rights reserved.
+>>>>>>> a0bdd8cd7583e79c5cf2fae2d296be1ba7dc1cd6
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -342,6 +346,9 @@ void data_bridge_close(unsigned int id)
 		return;
 
 	dev_dbg(&dev->intf->dev, "%s:\n", __func__);
+
+	cancel_work_sync(&dev->kevent);
+	cancel_work_sync(&dev->process_rx_w);
 
 	usb_unlink_anchored_urbs(&dev->tx_active);
 	usb_unlink_anchored_urbs(&dev->rx_active);
@@ -994,9 +1001,12 @@ static void bridge_disconnect(struct usb_interface *intf)
 	platform_device_unregister(dev->pdev);
 	usb_set_intfdata(intf, NULL);
 	__dev[dev->id] = NULL;
+<<<<<<< HEAD
 
 	cancel_work_sync(&dev->process_rx_w);
 	cancel_work_sync(&dev->kevent);
+=======
+>>>>>>> a0bdd8cd7583e79c5cf2fae2d296be1ba7dc1cd6
 
 	/*free rx urbs*/
 	head = &dev->rx_idle;

@@ -1,5 +1,9 @@
 /*
+<<<<<<< HEAD
  * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+=======
+ * Copyright (c) 2012-2013, Linux Foundation. All rights reserved.
+>>>>>>> a0bdd8cd7583e79c5cf2fae2d296be1ba7dc1cd6
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -169,17 +173,17 @@ read_start:
 		size_t len;
 
 		pkt = list_first_entry(&ksb->to_ks_list, struct data_pkt, list);
-		len = min_t(size_t, space, pkt->len);
-		pkt->n_read += len;
+		len = min_t(size_t, space, pkt->len - pkt->n_read);
 		spin_unlock_irqrestore(&ksb->lock, flags);
 
-		ret = copy_to_user(buf + copied, pkt->buf, len);
+		ret = copy_to_user(buf + copied, pkt->buf + pkt->n_read, len);
 		if (ret) {
 			pr_err("copy_to_user failed err:%d\n", ret);
 			ksb_free_data_pkt(pkt);
 			return ret;
 		}
 
+		pkt->n_read += len;
 		space -= len;
 		copied += len;
 
@@ -283,6 +287,10 @@ static ssize_t ksb_fs_write(struct file *fp, const char __user *buf,
 	struct data_pkt		*pkt;
 	unsigned long		flags;
 	struct ks_bridge	*ksb = fp->private_data;
+
+
+	if (count > MAX_DATA_PKT_SIZE)
+		count = MAX_DATA_PKT_SIZE;
 
 	pkt = ksb_alloc_data_pkt(count, GFP_KERNEL, ksb);
 	if (IS_ERR(pkt)) {
@@ -442,8 +450,13 @@ static void ksb_rx_cb(struct urb *urb)
 
 	pr_debug("status:%d actual:%d", urb->status, urb->actual_length);
 
+	/*non zero len of data received while unlinking urb*/
+	if (urb->status == -ENOENT && urb->actual_length > 0)
+		goto add_to_list;
+
 	if (urb->status < 0) {
-		if (urb->status != -ESHUTDOWN && urb->status != -ENOENT)
+		if (urb->status != -ESHUTDOWN && urb->status != -ENOENT
+				&& urb->status != -EPROTO)
 			pr_err_ratelimited("urb failed with err:%d",
 					urb->status);
 		ksb_free_data_pkt(pkt);
@@ -455,6 +468,7 @@ static void ksb_rx_cb(struct urb *urb)
 		return;
 	}
 
+add_to_list:
 	spin_lock(&ksb->lock);
 	pkt->len = urb->actual_length;
 	list_add_tail(&pkt->list, &ksb->to_ks_list);

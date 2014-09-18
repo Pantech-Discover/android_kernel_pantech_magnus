@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 /* Copyright (c) 2008-2012, The Linux Foundation. All rights reserved.
+=======
+/* Copyright (c) 2008-2013, The Linux Foundation. All rights reserved.
+>>>>>>> a0bdd8cd7583e79c5cf2fae2d296be1ba7dc1cd6
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -69,8 +73,11 @@ static int mipi_dsi_off(struct platform_device *pdev)
 	struct msm_fb_data_type *mfd;
 	struct msm_panel_info *pinfo;
 
+<<<<<<< HEAD
 	pr_debug("%s+:\n", __func__);
 
+=======
+>>>>>>> a0bdd8cd7583e79c5cf2fae2d296be1ba7dc1cd6
 	mfd = platform_get_drvdata(pdev);
 	pinfo = &mfd->panel_info;
 
@@ -79,14 +86,22 @@ static int mipi_dsi_off(struct platform_device *pdev)
 	else
 		down(&mfd->dma->mutex);
 
+<<<<<<< HEAD
 	if (mfd->panel_info.type == MIPI_CMD_PANEL) {
 		mipi_dsi_prepare_clocks();
 		mipi_dsi_ahb_ctrl(1);
 		mipi_dsi_clk_enable();
+=======
+	mdp4_overlay_dsi_state_set(ST_DSI_SUSPEND);
 
-		/* make sure dsi_cmd_mdp is idle */
-		mipi_dsi_cmd_mdp_busy();
-	}
+	/* make sure dsi clk is on so that
+	 * dcs commands can be sent
+	 */
+	mipi_dsi_clk_cfg(1);
+>>>>>>> a0bdd8cd7583e79c5cf2fae2d296be1ba7dc1cd6
+
+	/* make sure dsi_cmd_mdp is idle */
+	mipi_dsi_cmd_mdp_busy();
 
 	/*
 	 * Desctiption: change to DSI_CMD_MODE since it needed to
@@ -149,8 +164,11 @@ static int mipi_dsi_on(struct platform_device *pdev)
 	u32 dummy_xres, dummy_yres;
 	int target_type = 0;
 
+<<<<<<< HEAD
 	pr_debug("%s+:\n", __func__);
 
+=======
+>>>>>>> a0bdd8cd7583e79c5cf2fae2d296be1ba7dc1cd6
 	mfd = platform_get_drvdata(pdev);
 	fbi = mfd->fbi;
 	var = &fbi->var;
@@ -310,9 +328,6 @@ static int mipi_dsi_on(struct platform_device *pdev)
 			}
 			mipi_dsi_set_tear_on(mfd);
 		}
-		mipi_dsi_clk_disable();
-		mipi_dsi_ahb_ctrl(0);
-		mipi_dsi_unprepare_clocks();
 	}
 
 #ifdef CONFIG_MSM_BUS_SCALING

@@ -14,6 +14,14 @@
 #define DIAGFWD_HSIC_H
 
 #include <mach/diag_bridge.h>
+<<<<<<< HEAD
+=======
+
+#define N_MDM_WRITE	8
+#define N_MDM_READ	1
+>>>>>>> a0bdd8cd7583e79c5cf2fae2d296be1ba7dc1cd6
+
+#define NUM_HSIC_BUF_TBL_ENTRIES N_MDM_WRITE
 
 int diagfwd_connect_bridge(int);
 int diagfwd_disconnect_bridge(int);

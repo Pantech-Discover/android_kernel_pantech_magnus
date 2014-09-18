@@ -1703,7 +1703,7 @@ static int __init msm8960_audio_init(void)
 {
 	int ret;
 
-	if (!cpu_is_msm8960()) {
+	if (!cpu_is_msm8960() && !cpu_is_msm8960ab()) {
 		pr_debug("%s: Not the right machine type\n", __func__);
 		return -ENODEV ;
 	}
@@ -1754,11 +1754,18 @@ static int __init msm8960_audio_init(void)
 		return ret;
 	}
 
-	if (msm8960_configure_headset_mic_gpios()) {
-		pr_err("%s Fail to configure headset mic gpios\n", __func__);
+	if (cpu_is_msm8960()) {
+		if (msm8960_configure_headset_mic_gpios()) {
+			pr_err("%s Fail to configure headset mic gpios\n",
+								__func__);
+			msm8960_headset_gpios_configured = 0;
+		} else
+			msm8960_headset_gpios_configured = 1;
+	} else {
 		msm8960_headset_gpios_configured = 0;
-	} else
-		msm8960_headset_gpios_configured = 1;
+		pr_debug("%s headset GPIO 23 and 35 not configured msm960ab",
+								__func__);
+	}
 
 	mutex_init(&cdc_mclk_mutex);
 
@@ -1769,7 +1776,7 @@ module_init(msm8960_audio_init);
 
 static void __exit msm8960_audio_exit(void)
 {
-	if (!cpu_is_msm8960()) {
+	if (!cpu_is_msm8960() && !cpu_is_msm8960ab()) {
 		pr_debug("%s: Not the right machine type\n", __func__);
 		return ;
 	}

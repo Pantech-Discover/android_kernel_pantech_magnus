@@ -83,7 +83,7 @@ static void smsm_state_cb_hdlr(void *data, uint32_t old_state,
 	}
 
 	ss_restart_inprogress = true;
-	subsystem_restart("riva");
+	subsystem_restart("wcnss");
 }
 
 static irqreturn_t riva_wdog_bite_irq_hdlr(int irq, void *dev_id)
@@ -100,7 +100,7 @@ static irqreturn_t riva_wdog_bite_irq_hdlr(int irq, void *dev_id)
 		panic(MODULE_NAME ": Watchdog bite received from Riva");
 
 	ss_restart_inprogress = true;
-	subsystem_restart("riva");
+	subsystem_restart("wcnss");
 
 	return IRQ_HANDLED;
 }
@@ -158,9 +158,12 @@ static int riva_powerup(const struct subsys_data *subsys)
 	return ret;
 }
 
-/* 5MB RAM segments for Riva SS */
-static struct ramdump_segment riva_segments[] = {{0x8f200000,
-						0x8f700000 - 0x8f200000} };
+/* 7MB RAM segments for Riva SS;
+ * Riva 1.1 0x8f000000 - 0x8f700000
+ * Riva 1.0 0x8f200000 - 0x8f700000
+ */
+static struct ramdump_segment riva_segments[] = {{0x8f000000,
+						0x8f700000 - 0x8f000000} };
 
 static int riva_ramdump(int enable, const struct subsys_data *subsys)
 {
@@ -182,7 +185,7 @@ static void riva_crash_shutdown(const struct subsys_data *subsys)
 }
 
 static struct subsys_data riva_8960 = {
-	.name = "riva",
+	.name = "wcnss",
 	.shutdown = riva_shutdown,
 	.powerup = riva_powerup,
 	.ramdump = riva_ramdump,

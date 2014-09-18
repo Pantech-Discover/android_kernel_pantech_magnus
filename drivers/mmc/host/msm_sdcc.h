@@ -320,7 +320,7 @@ struct msmsdcc_sps_data {
 	unsigned int			dest_pipe_index;
 	unsigned int			busy;
 	unsigned int			xfer_req_cnt;
-	bool				pipe_reset_pending;
+	bool				reset_bam;
 	struct tasklet_struct		tlet;
 };
 
@@ -412,6 +412,7 @@ struct msmsdcc_host {
 	struct mutex clk_mutex;
 	bool pending_resume;
 	unsigned int idle_tout_ms;			/* Timeout in msecs */
+	bool pending_dpsm_reset;
 	struct msmsdcc_msm_bus_vote msm_bus_vote;
 	struct device_attribute	max_bus_bw;
 	struct device_attribute	polling;

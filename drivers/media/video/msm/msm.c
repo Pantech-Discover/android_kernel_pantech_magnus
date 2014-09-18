@@ -168,6 +168,16 @@ static void msm_cam_v4l2_subdev_notify(struct v4l2_subdev *sd,
 		return;
 }
 
+static void msm_send_error_evt(int evt_type)
+{
+	struct v4l2_event v4l2_ev;
+
+	v4l2_ev.id = 0;
+	v4l2_ev.type = evt_type;
+	ktime_get_ts(&v4l2_ev.timestamp);
+	v4l2_event_queue(g_server_dev.pcam_active->pvdev, &v4l2_ev);
+}
+
 static int msm_ctrl_cmd_done(void *arg)
 {
 	void __user *uptr;
@@ -276,7 +286,7 @@ static int msm_server_control(struct msm_cam_server_dev *server_dev,
 	struct msm_device_queue *queue =
 		&server_dev->server_queue[out->queue_idx].ctrl_q;
 	struct msm_cam_v4l2_device *pcam = server_dev->pcam_active;
-
+	int wait_count;
 	struct v4l2_event v4l2_evt;
 	struct msm_isp_event_ctrl *isp_event;
 	void *ctrlcmd_data;
@@ -337,9 +347,17 @@ static int msm_server_control(struct msm_cam_server_dev *server_dev,
 
 	/* wait for config return status */
 	D("Waiting for config status\n");
-	rc = wait_event_interruptible_timeout(queue->wait,
-		!list_empty_careful(&queue->list),
-		msecs_to_jiffies(out->timeout_ms));
+	wait_count = 2;
+	do {
+		rc = wait_event_interruptible_timeout(queue->wait,
+                        !list_empty_careful(&queue->list),
+                        msecs_to_jiffies(out->timeout_ms));
+		wait_count--;
+		if (rc != -ERESTARTSYS)
+			break;
+		printk("%s: wait_event interrupted by signal, remain_count = %d",
+                        __func__, wait_count);
+         }while (wait_count > 0);
 	D("Waiting is over for config status\n");
 	if (list_empty_careful(&queue->list)) {
 		if (!rc)
@@ -2525,14 +2543,9 @@ static int msm_close_server(struct file *fp)
 	if (g_server_dev.use_count == 0) {
 		mutex_lock(&g_server_dev.server_lock);
 		if (g_server_dev.pcam_active) {
-			struct v4l2_event v4l2_ev;
 			msm_cam_stop_hardware(g_server_dev.pcam_active);
-			v4l2_ev.type = V4L2_EVENT_PRIVATE_START
-				+ MSM_CAM_APP_NOTIFY_ERROR_EVENT;
-			v4l2_ev.id = 0;
-			ktime_get_ts(&v4l2_ev.timestamp);
-			v4l2_event_queue(
-				g_server_dev.pcam_active->pvdev, &v4l2_ev);
+			msm_send_error_evt(V4L2_EVENT_PRIVATE_START
+				+ MSM_CAM_APP_NOTIFY_ERROR_EVENT);
 		}
 		sub.type = V4L2_EVENT_ALL;
 		msm_server_v4l2_unsubscribe_event(
@@ -3047,6 +3060,10 @@ static void msm_cam_server_subdev_notify(struct v4l2_subdev *sd,
 	case NOTIFY_GESTURE_CAM_EVT:
 		rc = v4l2_subdev_call(g_server_dev.gesture_device,
 			core, ioctl, VIDIOC_MSM_GESTURE_CAM_EVT, arg);
+		break;
+	case NOTIFY_VFE_CAMIF_ERROR:
+		msm_send_error_evt(V4L2_EVENT_PRIVATE_START +
+			MSM_CAM_APP_NOTIFY_ERROR_EVENT);
 		break;
 	default:
 		break;

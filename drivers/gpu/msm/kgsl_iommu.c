@@ -1162,9 +1162,12 @@ static void kgsl_iommu_default_setstate(struct kgsl_mmu *mmu,
 	if (msm_soc_version_supports_iommu_v1())
 		kgsl_idle(mmu->device);
 
+<<<<<<< HEAD
 	/* Acquire GPU-CPU sync Lock here */
 	msm_iommu_lock();
 
+=======
+>>>>>>> a0bdd8cd7583e79c5cf2fae2d296be1ba7dc1cd6
 	if (flags & KGSL_MMUFLAGS_PTUPDATE) {
 		kgsl_idle(mmu->device);
 		for (i = 0; i < iommu->unit_count; i++) {

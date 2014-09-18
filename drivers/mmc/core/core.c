@@ -330,12 +330,16 @@ void mmc_start_bkops(struct mmc_card *card, bool from_exception)
 	if (!card->ext_csd.bkops_en)
 		return;
 
+<<<<<<< HEAD
 	mmc_claim_host(card->host);
 
+=======
+>>>>>>> a0bdd8cd7583e79c5cf2fae2d296be1ba7dc1cd6
 	if ((card->bkops_info.cancel_delayed_work) && !from_exception) {
 		pr_debug("%s: %s: cancel_delayed_work was set, exit\n",
 			 mmc_hostname(card->host), __func__);
 		card->bkops_info.cancel_delayed_work = false;
+<<<<<<< HEAD
 		goto out;
 	}
 
@@ -387,9 +391,79 @@ void mmc_start_bkops(struct mmc_card *card, bool from_exception)
 	if (err) {
 		pr_warn("%s: %s: Error %d when starting bkops\n",
 			mmc_hostname(card->host), __func__, err);
+=======
+		return;
+	}
+
+	/* In case of delayed bkops we might be in race with suspend. */
+	if (!mmc_try_claim_host(card->host))
+		return;
+
+	/*
+	 * Since the cancel_delayed_work can be changed while we are waiting
+	 * for the lock we will to re-check it
+	 */
+	if ((card->bkops_info.cancel_delayed_work) && !from_exception) {
+		pr_debug("%s: %s: cancel_delayed_work was set, exit\n",
+			 mmc_hostname(card->host), __func__);
+		card->bkops_info.cancel_delayed_work = false;
 		goto out;
 	}
 
+	if (mmc_card_doing_bkops(card)) {
+		pr_debug("%s: %s: already doing bkops, exit\n",
+			 mmc_hostname(card->host), __func__);
+		goto out;
+	}
+
+	if (from_exception && mmc_card_need_bkops(card))
+		goto out;
+
+	/*
+	 * If the need BKOPS flag is set, there is no need to check if BKOPS
+	 * is needed since we already know that it does
+	 */
+	if (!mmc_card_need_bkops(card)) {
+		err = mmc_read_bkops_status(card);
+		if (err) {
+			pr_err("%s: %s: Failed to read bkops status: %d\n",
+			       mmc_hostname(card->host), __func__, err);
+			goto out;
+		}
+
+		if (!card->ext_csd.raw_bkops_status)
+			goto out;
+
+		pr_info("%s: %s: raw_bkops_status=0x%x, from_exception=%d\n",
+			mmc_hostname(card->host), __func__,
+			card->ext_csd.raw_bkops_status,
+			from_exception);
+	}
+
+	/*
+	 * If the function was called due to exception, BKOPS will be performed
+	 * after handling the last pending request
+	 */
+	if (from_exception) {
+		pr_debug("%s: %s: Level %d from exception, exit",
+			 mmc_hostname(card->host), __func__,
+			 card->ext_csd.raw_bkops_status);
+		mmc_card_set_need_bkops(card);
+>>>>>>> a0bdd8cd7583e79c5cf2fae2d296be1ba7dc1cd6
+		goto out;
+	}
+	pr_info("%s: %s: Starting bkops\n", mmc_hostname(card->host), __func__);
+
+<<<<<<< HEAD
+=======
+	err = __mmc_switch(card, EXT_CSD_CMD_SET_NORMAL,
+			EXT_CSD_BKOPS_START, 1, 0, false, false);
+	if (err) {
+		pr_warn("%s: Error %d starting bkops\n",
+			mmc_hostname(card->host), err);
+		goto out;
+	}
+>>>>>>> a0bdd8cd7583e79c5cf2fae2d296be1ba7dc1cd6
 	mmc_card_clr_need_bkops(card);
 
 	mmc_card_set_doing_bkops(card);
@@ -433,6 +507,7 @@ void mmc_bkops_completion_polling(struct work_struct *work)
 
 		if (!mmc_card_doing_bkops(card))
 			goto out;
+<<<<<<< HEAD
 
 		err = mmc_send_status(card, &status);
 		if (err) {
@@ -441,6 +516,16 @@ void mmc_bkops_completion_polling(struct work_struct *work)
 			goto out;
 		}
 
+=======
+
+		err = mmc_send_status(card, &status);
+		if (err) {
+			pr_err("%s: error %d requesting status\n",
+			       mmc_hostname(card->host), err);
+			goto out;
+		}
+
+>>>>>>> a0bdd8cd7583e79c5cf2fae2d296be1ba7dc1cd6
 		/*
 		 * Some cards mishandle the status bits, so make sure to check
 		 * both the busy indication and the card state.
@@ -2702,11 +2787,17 @@ int mmc_suspend_host(struct mmc_host *host)
 
 		if (!err) {
 			if (host->bus_ops->suspend) {
+<<<<<<< HEAD
 				if (mmc_card_doing_bkops(host->card)) {
 					err = mmc_stop_bkops(host->card);
 					if (err)
 						goto stop_bkops_err;
 				}
+=======
+				err = mmc_stop_bkops(host->card);
+				if (err)
+					goto stop_bkops_err;
+>>>>>>> a0bdd8cd7583e79c5cf2fae2d296be1ba7dc1cd6
 				err = host->bus_ops->suspend(host);
 			}
 			if (!(host->card && mmc_card_sdio(host->card)))

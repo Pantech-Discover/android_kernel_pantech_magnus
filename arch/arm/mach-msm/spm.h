@@ -247,6 +247,14 @@ static inline int msm_spm_set_vdd(unsigned int cpu, unsigned int vlevel)
 }
 
 static inline unsigned int msm_spm_get_vdd(unsigned int cpu)
+<<<<<<< HEAD
+=======
+{
+	return 0;
+}
+
+static inline void msm_spm_reinit(void)
+>>>>>>> a0bdd8cd7583e79c5cf2fae2d296be1ba7dc1cd6
 {
 	return 0;
 }

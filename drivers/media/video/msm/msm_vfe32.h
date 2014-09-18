@@ -185,6 +185,10 @@
 #define HFR_MODE_OFF 1
 #define VFE_FRAME_SKIP_PERIOD_MASK 0x0000001F /*bits 0 -4*/
 
+#define VFE_RELOAD_ALL_WRITE_MASTERS 0x00003FFF
+
+#define BUS_OVERFLOW_THRESHOLD  5
+
 enum VFE32_DMI_RAM_SEL {
 	NO_MEM_SELECTED          = 0,
 	BLACK_LUT_RAM_BANK0      = 0x1,
@@ -216,6 +220,8 @@ enum vfe_output_state {
 	VFE_STATE_STARTED,
 	VFE_STATE_STOP_REQUESTED,
 	VFE_STATE_STOPPED,
+	VFE_STATE_HW_STOP_REQUESTED,
+	VFE_STATE_HW_STOPPED,
 };
 
 #define V32_CAMIF_OFF             0x000001E4
@@ -867,6 +873,7 @@ struct vfe32_frame_extra {
 #define VFE_BUS_STATS_SKIN_WR_PONG_ADDR    0x00000140
 #define VFE_BUS_STATS_SKIN_UB_CFG          0x00000144
 #define VFE_CAMIF_COMMAND               0x000001E0
+#define VFE_CAMIF_FRAME_CFG		0x000001EC
 #define VFE_CAMIF_STATUS                0x00000204
 #define VFE_REG_UPDATE_CMD              0x00000260
 #define VFE_DEMUX_GAIN_0                0x00000288
@@ -1001,6 +1008,7 @@ struct vfe32_ctrl_type {
 	uint32_t frame_skip_cnt;
 	uint32_t frame_skip_pattern;
 	uint32_t snapshot_frame_cnt;
+	uint32_t overflow_count;
 };
 
 #define statsAeNum      0

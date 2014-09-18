@@ -27,8 +27,8 @@
 
 #define PIL_FW_SIZE 0x200000
 
-static unsigned int vidc_clk_table[4] = {
-	48000000, 133330000, 200000000, 228570000,
+static unsigned int vidc_clk_table[5] = {
+	48000000, 133330000, 200000000, 228570000, 266670000,
 };
 static unsigned int restrk_mmu_subsystem[] =	{
 		MSM_SUBSYSTEM_VIDEO, MSM_SUBSYSTEM_VIDEO_FWARE};
@@ -537,6 +537,10 @@ int res_trk_update_bus_perf_level(struct vcd_dev_ctxt *dev_ctxt, u32 perf_level)
 	u32 enc_perf_level = 0, dec_perf_level = 0;
 	u32 bus_clk_index, client_type = 0;
 	int rc = 0;
+<<<<<<< HEAD
+=======
+	bool turbo_enabled = false;
+>>>>>>> a0bdd8cd7583e79c5cf2fae2d296be1ba7dc1cd6
 	bool turbo_supported =
 		!resource_context.vidc_platform_data->disable_turbo;
 
@@ -546,6 +550,9 @@ int res_trk_update_bus_perf_level(struct vcd_dev_ctxt *dev_ctxt, u32 perf_level)
 			dec_perf_level += cctxt_itr->reqd_perf_lvl;
 		else
 			enc_perf_level += cctxt_itr->reqd_perf_lvl;
+
+		if (cctxt_itr->is_turbo_enabled)
+			turbo_enabled = true;
 		cctxt_itr = cctxt_itr->next;
 	}
 
@@ -562,8 +569,23 @@ int res_trk_update_bus_perf_level(struct vcd_dev_ctxt *dev_ctxt, u32 perf_level)
 
 	if (dev_ctxt->reqd_perf_lvl + dev_ctxt->curr_perf_lvl == 0)
 		bus_clk_index = 2;
+<<<<<<< HEAD
 	else if (!turbo_supported && bus_clk_index == 3)
 		bus_clk_index = 2;
+=======
+	else if ((!turbo_supported || !turbo_enabled) && bus_clk_index == 3) {
+		if (!turbo_supported)
+			VCDRES_MSG_MED("Warning: Turbo mode not supported "\
+					" falling back to 1080p bus\n");
+		bus_clk_index = 2;
+	}
+
+	if (bus_clk_index == 3)
+		dev_ctxt->turbo_mode_set = true;
+	else
+		dev_ctxt->turbo_mode_set = false;
+
+>>>>>>> a0bdd8cd7583e79c5cf2fae2d296be1ba7dc1cd6
 	bus_clk_index = (bus_clk_index << 1) + (client_type + 1);
 	VCDRES_MSG_LOW("%s(), bus_clk_index = %d", __func__, bus_clk_index);
 	VCDRES_MSG_LOW("%s(),context.pcl = %x", __func__, resource_context.pcl);
@@ -615,12 +637,20 @@ u32 res_trk_set_perf_level(u32 req_perf_lvl, u32 *pn_set_perf_lvl,
 		vidc_freq = vidc_clk_table[2];
 		*pn_set_perf_lvl = RESTRK_1080P_MAX_PERF_LEVEL;
 	} else {
-		vidc_freq = vidc_clk_table[3];
+		vidc_freq = vidc_clk_table[4];
 		*pn_set_perf_lvl = RESTRK_1080P_TURBO_PERF_LEVEL;
 	}
 
+<<<<<<< HEAD
 	if (!turbo_supported &&
 		 *pn_set_perf_lvl == RESTRK_1080P_TURBO_PERF_LEVEL) {
+=======
+	if ((!turbo_supported || !dev_ctxt->turbo_mode_set) &&
+		 *pn_set_perf_lvl == RESTRK_1080P_TURBO_PERF_LEVEL) {
+		if (!turbo_supported)
+			VCDRES_MSG_ERROR("Warning: Turbo mode not supported "\
+					" falling back to 1080p clocks\n");
+>>>>>>> a0bdd8cd7583e79c5cf2fae2d296be1ba7dc1cd6
 		vidc_freq = vidc_clk_table[2];
 		*pn_set_perf_lvl = RESTRK_1080P_MAX_PERF_LEVEL;
 	}
@@ -633,6 +663,10 @@ u32 res_trk_set_perf_level(u32 req_perf_lvl, u32 *pn_set_perf_lvl,
 		VCDRES_MSG_MED("%s(): Setting vidc freq to %u\n",
 			__func__, vidc_freq);
 		if (!res_trk_sel_clk_rate(vidc_freq)) {
+			if (vidc_freq == vidc_clk_table[4]) {
+				if (res_trk_sel_clk_rate(vidc_clk_table[3]))
+					goto ret;
+			}
 			VCDRES_MSG_ERROR("%s(): res_trk_sel_clk_rate FAILED\n",
 				__func__);
 			*pn_set_perf_lvl = 0;
@@ -640,7 +674,7 @@ u32 res_trk_set_perf_level(u32 req_perf_lvl, u32 *pn_set_perf_lvl,
 		}
 	}
 #endif
-	VCDRES_MSG_MED("%s() set perl level : %d", __func__, *pn_set_perf_lvl);
+ret:	VCDRES_MSG_MED("%s() set perl level : %d", __func__, *pn_set_perf_lvl);
 	return true;
 }
 

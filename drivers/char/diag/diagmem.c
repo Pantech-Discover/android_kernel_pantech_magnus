@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 /* Copyright (c) 2008-2012, The Linux Foundation. All rights reserved.
+=======
+/* Copyright (c) 2008-2012, Code Aurora Forum. All rights reserved.
+>>>>>>> a0bdd8cd7583e79c5cf2fae2d296be1ba7dc1cd6
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -106,7 +110,11 @@ void diagmem_exit(struct diagchar_dev *driver, int pool_type)
 			printk(KERN_ALERT "Unable to destroy STRUCT mempool");
 	}
 #ifdef CONFIG_DIAG_BRIDGE_CODE
+<<<<<<< HEAD
 	if (driver->diag_hsic_pool && (driver->hsic_device_enabled == 0)) {
+=======
+	if (driver->diag_hsic_pool && (driver->hsic_inited == 0)) {
+>>>>>>> a0bdd8cd7583e79c5cf2fae2d296be1ba7dc1cd6
 		if (driver->count_hsic_pool == 0) {
 			mempool_destroy(driver->diag_hdlc_pool);
 			driver->diag_hdlc_pool = NULL;
@@ -114,8 +122,12 @@ void diagmem_exit(struct diagchar_dev *driver, int pool_type)
 			pr_err("Unable to destroy HDLC mempool");
 	}
 
+<<<<<<< HEAD
 	if (driver->diag_hsic_write_pool &&
 		(driver->hsic_device_enabled == 0)) {
+=======
+	if (driver->diag_hsic_write_pool && (driver->hsic_inited == 0)) {
+>>>>>>> a0bdd8cd7583e79c5cf2fae2d296be1ba7dc1cd6
 		/*
 		 * Free up struct pool ONLY if there are no outstanding
 		 * transactions(aggregation buffer) with USB
